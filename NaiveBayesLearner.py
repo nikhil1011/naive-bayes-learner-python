@@ -2,6 +2,9 @@ import nltk
 import math
 import os
 from nltk.tokenize import RegexpTokenizer
+import filecmp
+import io
+import json
 
 def get_tokens_in_document(document):
     tokenizer = RegexpTokenizer(r'\w+')
@@ -53,7 +56,7 @@ def extract_tokens_from_document(vocabulary, document_text):
 
     for word in document_text:
         if(word in vocabulary):
-            tokens.add(word)
+            tokens.append(word)
 
     return tokens
 
@@ -73,10 +76,12 @@ def train(classes, documents):
         for word in vocabulary:
             word_count[word] = count_word_occurences_in_text(word, text_of_class)
         denominator = calculate_denominator(word_count)
-        conditional_probability[word] = {}
-        conditional_probability[cls] = (float(word_count[word] + 1))/denominator
+        for word in vocabulary:
+            if(word not in conditional_probability):
+                conditional_probability[word] = {}
+            conditional_probability[word][cls] = (float(word_count[word] + 1))/denominator
 
-    return (V, prior, conditional_probability)
+    return (vocabulary, prior, conditional_probability)
 
 def test(classes, vocabulary, prior, conditional_probability, document_text):
 
@@ -84,17 +89,96 @@ def test(classes, vocabulary, prior, conditional_probability, document_text):
     scores = {}
 
     for cls in classes:
-        score[cls] = math.log(prior[cls])
+        scores[cls] = math.log(prior[cls])
         for word in relevant_words:
-            score[cls] += math.log(conditional_probability[word][cls])
+            if(cls in conditional_probability[word]):
+                scores[cls] += math.log(conditional_probability[word][cls])
     
-    max_key, max_value = max(stats.iteritems(), key=lambda x:x[1])
+    max_key = max(scores, key=scores.get)
 
-    return (max_key, max_value)
+    return (max_key, scores[max_key])
 
+
+def get_documents_dictionary(file_names, folder, cls):
+    for file_name in file_names:
+        with io.open(folder + file_name, encoding = 'utf-8') as current_file:
+            data=current_file.read().replace('\n', '')
+            documents[data] = cls
+    return documents
+
+def file_cmp(file_names):
+    for i in range(0, len(file_names)):
+        for j in range(i + 1, len(file_names)):
+            if(filecmp.cmp(file_names[i], file_names[j])):
+                print("File Contents duplicated")
+
+def predict_class_for_test_data(file_names, test_folder, class_to_test_for):
+    correct_predictions = 0
+    incorrect_predictions = 0
+    for file_name in file_names:
+        with io.open(test_folder + file_name, encoding = 'ISO-8859-1') as current_file:
+            current_string = current_file.read()
+            current_text = extract_vocabulary([current_string])
+            test_result = test(classes, vocabulary, prior, conditional_probability, current_text)
+            if(test_result[0] == class_to_test_for):
+                correct_predictions = correct_predictions + 1
+            else:
+                incorrect_predictions = incorrect_predictions + 1
+    return  correct_predictions, incorrect_predictions
 
 if __name__ == "__main__":
-    ham_folder = 'hw2_train/train/ham'
-    ham_file_names = os.listdir(ham_folder)
     classes = ['ham', 'spam']
+    
+    vocabulary = set()
+    prior = {}
+    conditional_probability = {}
+
+    if(input("Do you want to retrain from scratch?") == "yes"):
+        documents = {}
+        
+        ham_folder = 'hw2_train/train/ham/'
+        ham_file_names = os.listdir(ham_folder)
+        cls = 'ham'
+        #file_cmp([ham_folder + file_name for file_name in ham_file_names])
+        documents.update(get_documents_dictionary(ham_file_names, ham_folder, cls))
+
+        spam_folder = 'hw2_train/train/spam/'
+        spam_file_names = os.listdir(spam_folder)
+        cls = 'spam'
+        #file_cmp([spam_folder + file_name for file_name in spam_file_names])
+        documents.update(get_documents_dictionary(spam_file_names, spam_folder, cls))
+
+        vocabulary, prior, conditional_probability = train(classes, documents)
+        
+        conditional_probability_file = open("trained_dictionary.json", "w")
+        conditional_probability_file.write(json.dumps(conditional_probability))
+
+    else:
+        vocabulary_file = open("vocabulary.txt", "r") 
+        vocabulary = set([word.replace("'","") for word in vocabulary_file.read().split(',')])
+        vocabulary = set(list(word.strip() for word in vocabulary))
+        vocabulary_file.close()
+
+        prior_file = open("trained_prior_values.json", "r")
+        prior = json.loads(prior_file.read())
+        prior_file.close()
+
+        conditional_probability_file = open("trained_dictionary.json", "r")
+        conditional_probability = json.loads(conditional_probability_file.read())
+        conditional_probability_file.close()
+    
+    ham_test_folder = 'hw2_test/test/ham/'
+    test_ham_file_names = os.listdir(ham_test_folder)
+
+    ham_correct_predictions, ham_incorrect_predictions = predict_class_for_test_data(test_ham_file_names, ham_test_folder, 'ham')
+    
+    spam_test_folder = 'hw2_test/test/spam/'
+    test_spam_file_names = os.listdir(spam_test_folder)
+
+    spam_correct_predictions, spam_incorrect_predictions = predict_class_for_test_data(test_spam_file_names, spam_test_folder, 'spam')
+
+    accuracy = float(ham_correct_predictions + spam_correct_predictions) / (ham_correct_predictions + ham_incorrect_predictions + spam_correct_predictions + spam_incorrect_predictions)
+
+    print(accuracy)
+
     
