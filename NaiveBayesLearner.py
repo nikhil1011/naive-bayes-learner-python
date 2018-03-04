@@ -133,16 +133,74 @@ if __name__ == "__main__":
     prior = {}
     conditional_probability = {}
 
+    dataset1_training_ham_folder = "hw2_train/train/ham/"
+    dataset1_training_spam_folder = "hw2_train/train/spam/"
+    dataset1_test_ham_folder = "hw2_test/test/ham/"
+    dataset1_test_spam_folder = "hw2_test/test/spam/"
+
+    dataset2_training_ham_folder = "enron1_train/enron1/train/ham/"
+    dataset2_training_spam_folder = "enron1_train/enron1/train/spam/"
+    dataset2_test_ham_folder = "enron1_test/enron1/test/ham/"
+    dataset2_test_spam_folder = "enron1_test/enron1/test/spam/"
+
+    dataset2_training_ham_folder = "enron1_train/enron1/train/ham/"
+    dataset2_training_spam_folder = "enron1_train/enron1/train/spam/"
+    dataset2_test_ham_folder = "enron1_test/enron1/test/ham/"
+    dataset2_test_spam_folder = "enron1_test/enron1/test/spam/"
+
+    dataset3_training_ham_folder = "enron4_train/enron4/train/ham/"
+    dataset3_training_spam_folder = "enron4_train/enron4/train/spam/"
+    dataset3_test_ham_folder = "enron4_test/enron4/test/ham/"
+    dataset3_test_spam_folder = "enron4_test/enron4/test/spam/"
+
+    dataset1_trained_file = "ds1_trained_dictionary.json";
+    dataset2_trained_file = "ds2_trained_dictionary.json";
+    dataset3_trained_file = "ds3_trained_dictionary.json";
+
+    dataset1_prior_file = "ds1_trained_prior_values.json"
+    dataset2_prior_file = "ds2_trained_prior_values.json"
+    dataset3_prior_file = "ds3_trained_prior_values.json"
+
+    dataset_to_use = int(input("Which dataset do you want to use from the H.W web page? Enter 1 or 2 or 3"))
+    
+    ham_folder = ""
+    spam_folder = ""
+    ham_test_folder = ""
+    spam_test_folder = ""
+
+    if(dataset_to_use == 1):
+        ham_folder = dataset1_training_ham_folder
+        spam_folder = dataset1_training_spam_folder
+        ham_test_folder = dataset1_test_ham_folder
+        spam_test_folder = dataset1_test_spam_folder
+        training_file = dataset1_trained_file
+        prior_file = dataset1_prior_file
+
+    if(dataset_to_use == 2):
+        ham_folder = dataset2_training_ham_folder
+        spam_folder = dataset2_training_spam_folder
+        ham_test_folder = dataset2_test_ham_folder
+        spam_test_folder = dataset2_test_spam_folder
+        training_file = dataset2_trained_file
+        prior_file = dataset2_prior_file
+
+    if(dataset_to_use == 3):
+        ham_folder = dataset3_training_ham_folder
+        spam_folder = dataset3_training_spam_folder
+        ham_test_folder = dataset3_test_ham_folder
+        spam_test_folder = dataset3_test_spam_folder
+        training_file = dataset3_trained_file
+        prior_file = dataset3_prior_file
+
     if(input("Do you want to retrain from scratch?") == "yes"):
-        documents = {}
-        
-        ham_folder = 'hw2_train/train/ham/'
+        documents = {}    
+
         ham_file_names = os.listdir(ham_folder)
         cls = 'ham'
         #file_cmp([ham_folder + file_name for file_name in ham_file_names])
         documents.update(get_documents_dictionary(ham_file_names, ham_folder, cls))
 
-        spam_folder = 'hw2_train/train/spam/'
+        
         spam_file_names = os.listdir(spam_folder)
         cls = 'spam'
         #file_cmp([spam_folder + file_name for file_name in spam_file_names])
@@ -167,7 +225,7 @@ if __name__ == "__main__":
         conditional_probability = json.loads(conditional_probability_file.read())
         conditional_probability_file.close()
     
-    ham_test_folder = 'hw2_test/test/ham/'
+    
     test_ham_file_names = os.listdir(ham_test_folder)
 
     ham_correct_predictions, ham_incorrect_predictions = predict_class_for_test_data(test_ham_file_names, ham_test_folder, 'ham')

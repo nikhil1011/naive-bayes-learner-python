@@ -1,0 +1,16 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "python",
+      "interpreter": "(default)",
+      "interpreterArguments": "",
+      "scriptArguments": "train test 1000 0.01",
+      "nativeDebug": false,
+      "webBrowserUrl": "",
+      "project": "PerceptronAlgorithm.py",
+      "name": "PerceptronAlgorithm.py"
+    }
+  ]
+}
