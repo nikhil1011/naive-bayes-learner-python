@@ -91,6 +91,8 @@ def test(classes, vocabulary, prior, conditional_probability, document_text):
     for cls in classes:
         scores[cls] = math.log(prior[cls])
         for word in relevant_words:
+            if(word == 'kimberly' or word == 'mixed'):
+                m = 1
             if(cls in conditional_probability[word]):
                 scores[cls] += math.log(conditional_probability[word][cls])
     
@@ -101,7 +103,7 @@ def test(classes, vocabulary, prior, conditional_probability, document_text):
 
 def get_documents_dictionary(file_names, folder, cls):
     for file_name in file_names:
-        with io.open(folder + file_name, encoding = 'utf-8') as current_file:
+        with io.open(folder + file_name, encoding = 'ISO-8859-1') as current_file:
             data=current_file.read().replace('\n', '')
             documents[data] = cls
     return documents
@@ -161,7 +163,7 @@ if __name__ == "__main__":
     dataset2_prior_file = "ds2_trained_prior_values.json"
     dataset3_prior_file = "ds3_trained_prior_values.json"
 
-    dataset_to_use = int(input("Which dataset do you want to use from the H.W web page? Enter 1 or 2 or 3"))
+    dataset_to_use = int(input("Which dataset do you want to use from the H.W web page? Enter 1 or 2 or 3\n"))
     
     ham_folder = ""
     spam_folder = ""
@@ -174,7 +176,7 @@ if __name__ == "__main__":
         ham_test_folder = dataset1_test_ham_folder
         spam_test_folder = dataset1_test_spam_folder
         training_file = dataset1_trained_file
-        prior_file = dataset1_prior_file
+        prior_file_location = dataset1_prior_file
 
     if(dataset_to_use == 2):
         ham_folder = dataset2_training_ham_folder
@@ -182,7 +184,7 @@ if __name__ == "__main__":
         ham_test_folder = dataset2_test_ham_folder
         spam_test_folder = dataset2_test_spam_folder
         training_file = dataset2_trained_file
-        prior_file = dataset2_prior_file
+        prior_file_location = dataset2_prior_file
 
     if(dataset_to_use == 3):
         ham_folder = dataset3_training_ham_folder
@@ -190,9 +192,9 @@ if __name__ == "__main__":
         ham_test_folder = dataset3_test_ham_folder
         spam_test_folder = dataset3_test_spam_folder
         training_file = dataset3_trained_file
-        prior_file = dataset3_prior_file
+        prior_file_location = dataset3_prior_file
 
-    if(input("Do you want to retrain from scratch?") == "yes"):
+    if(input("Do you want to retrain from scratch?\n") == "yes"):
         documents = {}    
 
         ham_file_names = os.listdir(ham_folder)
@@ -208,8 +210,14 @@ if __name__ == "__main__":
 
         vocabulary, prior, conditional_probability = train(classes, documents)
         
-        conditional_probability_file = open("trained_dictionary.json", "w")
+        conditional_probability_file = open(training_file, "w")
         conditional_probability_file.write(json.dumps(conditional_probability))
+        conditional_probability_file.close()
+        
+        prior_file = open(prior_file_location, "w")
+        prior_file.write(json.dumps(prior))
+        prior_file.close()
+
 
     else:
         vocabulary_file = open("vocabulary.txt", "r") 
@@ -217,11 +225,11 @@ if __name__ == "__main__":
         vocabulary = set(list(word.strip() for word in vocabulary))
         vocabulary_file.close()
 
-        prior_file = open("trained_prior_values.json", "r")
+        prior_file = open(prior_file_location, "r")
         prior = json.loads(prior_file.read())
         prior_file.close()
 
-        conditional_probability_file = open("trained_dictionary.json", "r")
+        conditional_probability_file = open(training_file, "r")
         conditional_probability = json.loads(conditional_probability_file.read())
         conditional_probability_file.close()
     
@@ -230,7 +238,7 @@ if __name__ == "__main__":
 
     ham_correct_predictions, ham_incorrect_predictions = predict_class_for_test_data(test_ham_file_names, ham_test_folder, 'ham')
     
-    spam_test_folder = 'hw2_test/test/spam/'
+    spam_test_folder = spam_folder
     test_spam_file_names = os.listdir(spam_test_folder)
 
     spam_correct_predictions, spam_incorrect_predictions = predict_class_for_test_data(test_spam_file_names, spam_test_folder, 'spam')
