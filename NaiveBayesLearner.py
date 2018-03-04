@@ -91,8 +91,6 @@ def test(classes, vocabulary, prior, conditional_probability, document_text):
     for cls in classes:
         scores[cls] = math.log(prior[cls])
         for word in relevant_words:
-            if(word == 'kimberly' or word == 'mixed'):
-                m = 1
             if(cls in conditional_probability[word]):
                 scores[cls] += math.log(conditional_probability[word][cls])
     
@@ -194,44 +192,28 @@ if __name__ == "__main__":
         training_file = dataset3_trained_file
         prior_file_location = dataset3_prior_file
 
-    if(input("Do you want to retrain from scratch?\n") == "yes"):
-        documents = {}    
+    documents = {}    
 
-        ham_file_names = os.listdir(ham_folder)
-        cls = 'ham'
-        #file_cmp([ham_folder + file_name for file_name in ham_file_names])
-        documents.update(get_documents_dictionary(ham_file_names, ham_folder, cls))
+    ham_file_names = os.listdir(ham_folder)
+    cls = 'ham'
+    #file_cmp([ham_folder + file_name for file_name in ham_file_names])
+    documents.update(get_documents_dictionary(ham_file_names, ham_folder, cls))
 
         
-        spam_file_names = os.listdir(spam_folder)
-        cls = 'spam'
-        #file_cmp([spam_folder + file_name for file_name in spam_file_names])
-        documents.update(get_documents_dictionary(spam_file_names, spam_folder, cls))
+    spam_file_names = os.listdir(spam_folder)
+    cls = 'spam'
+    #file_cmp([spam_folder + file_name for file_name in spam_file_names])
+    documents.update(get_documents_dictionary(spam_file_names, spam_folder, cls))
 
-        vocabulary, prior, conditional_probability = train(classes, documents)
+    vocabulary, prior, conditional_probability = train(classes, documents)
         
-        conditional_probability_file = open(training_file, "w")
-        conditional_probability_file.write(json.dumps(conditional_probability))
-        conditional_probability_file.close()
+    conditional_probability_file = open(training_file, "w")
+    conditional_probability_file.write(json.dumps(conditional_probability))
+    conditional_probability_file.close()
         
-        prior_file = open(prior_file_location, "w")
-        prior_file.write(json.dumps(prior))
-        prior_file.close()
-
-
-    else:
-        vocabulary_file = open("vocabulary.txt", "r") 
-        vocabulary = set([word.replace("'","") for word in vocabulary_file.read().split(',')])
-        vocabulary = set(list(word.strip() for word in vocabulary))
-        vocabulary_file.close()
-
-        prior_file = open(prior_file_location, "r")
-        prior = json.loads(prior_file.read())
-        prior_file.close()
-
-        conditional_probability_file = open(training_file, "r")
-        conditional_probability = json.loads(conditional_probability_file.read())
-        conditional_probability_file.close()
+    prior_file = open(prior_file_location, "w")
+    prior_file.write(json.dumps(prior))
+    prior_file.close()
     
     
     test_ham_file_names = os.listdir(ham_test_folder)
